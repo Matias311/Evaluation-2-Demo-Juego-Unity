@@ -6,7 +6,6 @@ public class NewBehaviourScript : MonoBehaviour
 {
     public float walkSpeed = 2f;
     public float runSpeed = 5f;
-    public float rotationSpeed = 10f;
 
     private Animator animator;
     private CharacterController controller;
@@ -20,15 +19,28 @@ public class NewBehaviourScript : MonoBehaviour
 
     void Update()
     {
-        // Inputs WASD
+        // Inputs
         float horizontal = Input.GetAxis("Horizontal");
         float vertical = Input.GetAxis("Vertical");
 
-        // Dirección movimiento
-        Vector3 move = new Vector3(horizontal, 0f, vertical);
+        // Dirección de la cámara
+        Vector3 cameraForward = Camera.main.transform.forward;
+        Vector3 cameraRight = Camera.main.transform.right;
 
-        // Magnitud del movimiento
-        float movementAmount = move.magnitude;
+        // Evitar movimiento vertical
+        cameraForward.y = 0f;
+        cameraRight.y = 0f;
+
+        cameraForward.Normalize();
+        cameraRight.Normalize();
+
+        // Movimiento relativo a cámara
+        Vector3 move =
+            cameraForward * vertical +
+            cameraRight * horizontal;
+
+        // Magnitud movimiento
+        float movementAmount = Mathf.Clamp01(move.magnitude);
 
         // Detectar correr
         bool isRunning = Input.GetKey(KeyCode.LeftShift);
@@ -36,32 +48,20 @@ public class NewBehaviourScript : MonoBehaviour
         // Velocidad actual
         float currentSpeed = isRunning ? runSpeed : walkSpeed;
 
-        // Movimiento
+        // Movimiento personaje
         if (movementAmount > 0.1f)
         {
-            // Rotar hacia dirección movimiento
-            Quaternion targetRotation = Quaternion.LookRotation(move);
-
-            transform.rotation = Quaternion.Slerp(
-                transform.rotation,
-                targetRotation,
-                rotationSpeed * Time.deltaTime
-            );
-
-            // Mover personaje
             controller.Move(
-                move.normalized * currentSpeed * Time.deltaTime
+                move.normalized *
+                currentSpeed *
+                Time.deltaTime
             );
         }
 
         // Blend Tree
-        float targetSpeed = move.magnitude;
+        float targetSpeed = movementAmount;
 
-        if (isRunning)
-        {
-            targetSpeed *= 1f;
-        }
-        else
+        if (!isRunning)
         {
             targetSpeed *= 0.5f;
         }
