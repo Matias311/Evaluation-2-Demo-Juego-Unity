@@ -507,7 +507,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   walkSpeed: 2
   runSpeed: 5
-  rotationSpeed: 10
 --- !u!143 &1752371236
 CharacterController:
   m_ObjectHideFlags: 0
